@@ -1,0 +1,16 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard | OCMS</title>
+</head>
+<body>
+<h1>Admin Dashboard</h1>
+<p>Welcome! This is your administrator dashboard.</p>
+<p>User and course administration features can be connected here next.</p>
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Logout</button>
+</form>
+</body>
+</html>

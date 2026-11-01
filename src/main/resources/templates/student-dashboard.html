@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Dashboard | OCMS</title>
+
+    <!-- Spring Security CSRF token -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1e293b;
+        }
+
+        .navbar {
+            background: #172554;
+            color: white;
+            padding: 18px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logout-form {
+            margin: 0;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 35px 24px;
+        }
+
+        .welcome {
+            background: linear-gradient(120deg, #2563eb, #4f46e5);
+            color: white;
+            padding: 35px;
+            border-radius: 16px;
+            margin-bottom: 35px;
+        }
+
+        .welcome h1 {
+            margin-top: 0;
+            font-size: 32px;
+        }
+
+        .welcome p {
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+        }
+
+        .course-count {
+            color: #64748b;
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit, minmax(260px, 1fr)
+            );
+            gap: 24px;
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px #0000000d;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .course-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px #00000015;
+        }
+
+        .course-banner {
+            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+            color: #1d4ed8;
+            padding: 25px;
+            font-size: 38px;
+            text-align: center;
+        }
+
+        .course-content {
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .category {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            align-self: flex-start;
+        }
+
+        .course-content h3 {
+            margin: 15px 0 10px;
+            font-size: 21px;
+        }
+
+        .description {
+            color: #64748b;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .instructor {
+            margin: 15px 0;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .enroll-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .enroll-btn:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .enroll-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .message {
+            background: white;
+            border-radius: 10px;
+            padding: 22px;
+            color: #475569;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        .notice {
+            padding: 14px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .notice.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .notice.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 16px;
+            }
+
+            .brand {
+                font-size: 20px;
+            }
+
+            .container {
+                padding: 24px 16px;
+            }
+
+            .welcome {
+                padding: 25px;
+            }
+
+            .welcome h1 {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <div class="brand">OCMS</div>
+
+    <form class="logout-form" th:action="@{/logout}" method="post">
+        <button class="logout-btn" type="submit">Logout</button>
+    </form>
+</nav>
+
+<main class="container">
+
+    <section class="welcome">
+        <h1>Welcome to Your Learning Space!</h1>
+        <p>
+            Discover courses, explore new skills, and continue your
+            learning journey with the Online Course Management System.
+        </p>
+    </section>
+
+    <div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+    <section>
+        <div class="section-heading">
+            <h2>Explore Courses</h2>
+            <span class="course-count" id="courseCount">
+                Loading courses...
+            </span>
+        </div>
+
+        <div class="course-grid" id="courseGrid">
+            <div class="message">Loading courses from the server...</div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    Online Course Management System
+</footer>
+
+<script>
+    const csrfToken =
+        document.querySelector('meta[name="_csrf"]').content;
+
+    const csrfHeader =
+        document.querySelector('meta[name="_csrf_header"]').content;
+
+    const courseGrid = document.getElementById("courseGrid");
+    const courseCount = document.getElementById("courseCount");
+    const notice = document.getElementById("notice");
+
+    function showNotice(message, type) {
+        notice.textContent = message;
+        notice.className = "notice " + type;
+    }
+
+    function showMessage(message) {
+        const box = document.createElement("div");
+        box.className = "message";
+        box.textContent = message;
+        courseGrid.replaceChildren(box);
+    }
+
+    async function readError(response) {
+        try {
+            const body = await response.json();
+            return body.detail || body.message || body.title ||
+                "Request failed with status " + response.status;
+        } catch {
+            return "Request failed with status " + response.status;
+        }
+    }
+
+    async function enrollInCourse(course, button) {
+        if (course.id == null) {
+            showNotice("This course has no valid ID.", "error");
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Enrolling...";
+
+        try {
+            const response = await fetch(
+                "/student/enroll/" + encodeURIComponent(course.id),
+                {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        [csrfHeader]: csrfToken
+                    }
+                }
+            );
+
+            if (response.status === 201) {
+                button.textContent = "Enrolled Successfully";
+                showNotice(
+                    "Successfully enrolled in " +
+                    (course.title || "this course") + ".",
+                    "success"
+                );
+                return;
+            }
+
+            const errorMessage = await readError(response);
+
+            if (response.status === 409) {
+                button.textContent = "Already Enrolled";
+                showNotice(
+                    "You are already enrolled in this course.",
+                    "error"
+                );
+                return;
+            }
+
+            button.disabled = false;
+            button.textContent = "Enroll Now";
+            showNotice(errorMessage, "error");
+
+        } catch (error) {
+            button.disabled = false;
+            button.textContent = "Enroll Now";
+
+            showNotice(
+                "Could not contact the server. Please try again.",
+                "error"
+            );
+
+            console.error("Enrollment error:", error);
+        }
+    }
+
+    async function loadCourses() {
+        try {
+            const response = await fetch("/api/courses", {
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to load courses. HTTP " + response.status
+                );
+            }
+
+            const courses = await response.json();
+
+            if (!Array.isArray(courses)) {
+                throw new Error("Unexpected course data format.");
+            }
+
+            courseGrid.replaceChildren();
+
+            courseCount.textContent =
+                courses.length +
+                (courses.length === 1
+                    ? " course available"
+                    : " courses available");
+
+            if (courses.length === 0) {
+                showMessage("No courses are available yet.");
+                return;
+            }
+
+            courses.forEach(course => {
+                const card = document.createElement("article");
+                card.className = "course-card";
+
+                const banner = document.createElement("div");
+                banner.className = "course-banner";
+                banner.textContent = "📚";
+
+                const content = document.createElement("div");
+                content.className = "course-content";
+
+                const category = document.createElement("span");
+                category.className = "category";
+                category.textContent = course.category || "General";
+
+                const title = document.createElement("h3");
+                title.textContent = course.title || "Untitled Course";
+
+                const description = document.createElement("p");
+                description.className = "description";
+                description.textContent =
+                    course.description || "No description available.";
+
+                const instructor = document.createElement("p");
+                instructor.className = "instructor";
+                instructor.textContent =
+                    "Instructor: " +
+                    (course.instructor || "Not specified");
+
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "enroll-btn";
+                button.textContent = "Enroll Now";
+
+                button.addEventListener("click", () => {
+                    enrollInCourse(course, button);
+                });
+
+                content.append(
+                    category,
+                    title,
+                    description,
+                    instructor,
+                    button
+                );
+
+                card.append(banner, content);
+                courseGrid.appendChild(card);
+            });
+
+        } catch (error) {
+            courseCount.textContent = "Unable to load courses";
+            showMessage(
+                "Could not load courses. Check that the backend is running."
+            );
+            console.error("Course loading error:", error);
+        }
+    }
+
+    loadCourses();
+</script>
+
+</body>
+</html>
