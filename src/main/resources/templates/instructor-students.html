@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>View Students | OCMS</title>
+    <style>
+        body { font-family:Arial,sans-serif; background:#f4f7fb;
+               color:#1e293b; margin:0; }
+        header { background:#3730a3; color:white; padding:25px 6%; }
+        main { max-width:1000px; margin:30px auto; padding:0 20px; }
+        .panel { background:white; border-radius:12px; padding:24px; }
+        .back { display:inline-block; padding:10px 16px; border-radius:7px;
+                background:#2563eb; color:white; text-decoration:none; }
+        table { width:100%; border-collapse:collapse; margin-top:20px; }
+        th,td { padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; }
+        th { background:#eef2ff; }
+        .message { color:#64748b; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Enrolled Students</h1>
+    <p>Review enrollment information from OCMS.</p>
+</header>
+
+<main>
+    <p><a class="back" th:href="@{/instructor/dashboard}">Back to Dashboard</a></p>
+
+    <section class="panel">
+        <h2>Enrollment List</h2>
+        <p id="message" class="message">Loading enrollments...</p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Enrollment ID</th>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </section>
+</main>
+
+<script>
+    async function loadEnrollments() {
+        const message = document.getElementById("message");
+        const rows = document.getElementById("rows");
+
+        try {
+            const response = await fetch("/api/enrollments");
+
+            if (!response.ok) {
+                throw new Error("HTTP " + response.status);
+            }
+
+            const enrollments = await response.json();
+            rows.replaceChildren();
+
+            if (!Array.isArray(enrollments) || enrollments.length === 0) {
+                message.textContent = "No enrollments found yet.";
+                return;
+            }
+
+            enrollments.forEach(enrollment => {
+                const row = document.createElement("tr");
+
+                [
+                    enrollment.id ?? "",
+                    enrollment.student?.name ?? "Unknown",
+                    enrollment.course?.title ?? "Unknown",
+                    enrollment.status ?? "Unknown"
+                ].forEach(value => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+
+                rows.appendChild(row);
+            });
+
+            message.textContent = enrollments.length + " enrollment(s) found.";
+        } catch (error) {
+            message.textContent =
+                "Could not load enrollments: " + error.message;
+        }
+    }
+
+    loadEnrollments();
+</script>
+</body>
+</html>

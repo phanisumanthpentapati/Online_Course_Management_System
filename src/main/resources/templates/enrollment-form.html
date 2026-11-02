@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Course Enrollment - OCMS</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #1e293b;
+            margin: 0;
+            padding: 30px 16px;
+        }
+
+        .container {
+            max-width: 560px;
+            margin: 30px auto;
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px #00000012;
+        }
+
+        h1 {
+            color: #1d3557;
+            margin-top: 0;
+        }
+
+        .note {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            border: 1px solid #ccd4e0;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        input[readonly] {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 13px;
+            border: 0;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .error,
+        .success {
+            padding: 12px;
+            margin-top: 16px;
+            border-radius: 7px;
+            line-height: 1.5;
+        }
+
+        .error {
+            color: #b91c1c;
+            background: #fee2e2;
+        }
+
+        .success {
+            color: #15803d;
+            background: #dcfce7;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Course Enrollment</h1>
+
+    <p class="note">
+        Review your registered details before enrolling in this course.
+    </p>
+
+    <!-- Error message -->
+    <div th:if="${error}"
+         class="error"
+         role="alert"
+         th:text="${error}">
+    </div>
+
+    <!-- Success message -->
+    <div th:if="${message}"
+         class="success"
+         role="status">
+        <span th:text="${message}"></span>
+
+        <div th:if="${enrollmentId != null}">
+            Enrollment reference:
+            <strong th:text="${enrollmentId}"></strong>
+        </div>
+    </div>
+
+    <!-- Enrollment details and confirmation -->
+    <form id="enrollmentForm"
+          th:action="@{/student/enroll/{courseId}(courseId=${course.id})}"
+          method="post">
+
+        <!-- CSRF protection -->
+        <input type="hidden"
+               th:if="${_csrf != null}"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}">
+
+        <label for="studentName">Student Name</label>
+        <input id="studentName"
+               type="text"
+               th:value="${studentName}"
+               readonly>
+
+        <label for="studentEmail">Registered Email</label>
+        <input id="studentEmail"
+               type="email"
+               th:value="${studentEmail}"
+               readonly>
+
+        <label for="courseTitle">Selected Course</label>
+        <input id="courseTitle"
+               type="text"
+               th:value="${course.title}"
+               readonly>
+
+        <label for="contact">Contact Number (optional)</label>
+        <input id="contact"
+               type="tel"
+               name="contact"
+               th:value="${contact}"
+               maxlength="20"
+               placeholder="Enter contact number">
+
+        <button type="submit"
+                id="confirmButton"
+                th:disabled="${enrollmentId != null}">
+            <span th:if="${enrollmentId == null}">
+                Confirm Enrollment
+            </span>
+            <span th:if="${enrollmentId != null}">
+                Enrollment Completed
+            </span>
+        </button>
+
+    </form>
+
+    <p class="note">
+        Your enrollment will be saved after server-side validation.
+    </p>
+
+    <a class="back-link" th:href="@{/student/dashboard}">
+        &larr; Back to Student Dashboard
+    </a>
+
+</div>
+
+<script>
+    const form = document.getElementById("enrollmentForm");
+    const button = document.getElementById("confirmButton");
+
+    form.addEventListener("submit", function () {
+        button.disabled = true;
+        button.textContent = "Processing Enrollment...";
+    });
+</script>
+
+</body>
+</html>

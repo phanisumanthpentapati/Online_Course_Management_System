@@ -1,0 +1,343 @@
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Manage Courses | OCMS</title>
+
+    <!-- CSRF protection for Spring Security -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            color: #1e293b;
+        }
+
+        header {
+            background: linear-gradient(120deg, #2563eb, #4f46e5);
+            color: white;
+            padding: 30px 6%;
+        }
+
+        header h1 {
+            margin: 0 0 12px;
+            font-size: 34px;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .panel {
+            background: white;
+            padding: 28px;
+            margin-bottom: 24px;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+        }
+
+        .panel h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 16px;
+            font-weight: 600;
+        }
+
+        input,
+        textarea {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            margin-top: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: 2px solid #bfdbfe;
+            border-color: #2563eb;
+        }
+
+        button,
+        .back {
+            display: inline-block;
+            padding: 12px 18px;
+            margin-top: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        button:hover,
+        .back:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .course {
+            padding: 18px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .course:last-child {
+            border-bottom: none;
+        }
+
+        .muted {
+            color: #64748b;
+        }
+
+        #message {
+            margin-top: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .success {
+            color: #15803d;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+        }
+
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 27px;
+            }
+
+            .panel {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Manage Courses</h1>
+    <p>Create courses and review existing course information.</p>
+</header>
+
+<main>
+
+    <p>
+        <a class="back" th:href="@{/instructor/dashboard}">
+            Back to Dashboard
+        </a>
+    </p>
+
+    <!-- Create course form -->
+    <section class="panel">
+        <h2>Create a Course</h2>
+
+        <form id="courseForm">
+
+            <label for="title">Course title</label>
+            <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    maxlength="200"
+                    required
+                    placeholder="Example: Java Programming">
+
+            <label for="category">Category</label>
+            <input
+                    id="category"
+                    name="category"
+                    type="text"
+                    required
+                    placeholder="Example: Programming">
+
+            <label for="description">Description</label>
+            <textarea
+                    id="description"
+                    name="description"
+                    rows="4"
+                    required
+                    placeholder="Describe what students will learn"></textarea>
+
+            <label for="instructor">Instructor name</label>
+            <input
+                    id="instructor"
+                    name="instructor"
+                    type="text"
+                    required
+                    placeholder="Example: Demo Instructor">
+
+            <button id="submitButton" type="submit">
+                Create Course
+            </button>
+
+        </form>
+
+        <p id="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- Existing courses -->
+    <section class="panel">
+        <h2>Existing Courses</h2>
+
+        <div th:if="${#lists.isEmpty(courses)}" class="muted">
+            No courses found.
+        </div>
+
+        <div class="course" th:each="course : ${courses}">
+            <h3 th:text="${course.title}">Course title</h3>
+
+            <p th:text="${course.description}">
+                Course description
+            </p>
+
+            <p class="muted">
+                Category:
+                <span th:text="${course.category}">Programming</span>
+            </p>
+
+            <p class="muted">
+                Instructor:
+                <span th:text="${course.instructor}">Instructor name</span>
+            </p>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    Online Course Management System &copy; 2026
+</footer>
+
+<script>
+    const form = document.getElementById("courseForm");
+    const message = document.getElementById("message");
+    const submitButton = document.getElementById("submitButton");
+
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        message.textContent = "";
+        message.className = "";
+
+        const title = document.getElementById("title").value.trim();
+        const category = document.getElementById("category").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const instructor = document.getElementById("instructor").value.trim();
+
+        if (!title || !category || !description || !instructor) {
+            message.textContent = "Please fill in all fields.";
+            message.className = "error";
+            return;
+        }
+
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector(
+            'meta[name="_csrf_header"]'
+        )?.content;
+
+        const headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        };
+
+        if (token && csrfHeader) {
+            headers[csrfHeader] = token;
+        }
+
+        const course = {
+            title: title,
+            category: category,
+            description: description,
+            instructor: instructor
+        };
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating...";
+        message.textContent = "Saving course...";
+
+        try {
+            const response = await fetch("/api/courses", {
+                method: "POST",
+                headers: headers,
+                credentials: "same-origin",
+                body: JSON.stringify(course)
+            });
+
+            if (!response.ok) {
+                const detail = await response.text();
+
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error(
+                        "Access denied. Check your login, role, and CSRF configuration."
+                    );
+                }
+
+                throw new Error(
+                    detail || "Request failed with status " + response.status
+                );
+            }
+
+            message.textContent = "Course created successfully!";
+            message.className = "success";
+
+            form.reset();
+
+            // Reload the page to display the newly created course.
+            window.location.reload();
+
+        } catch (error) {
+            message.textContent =
+                "Could not create course: " + error.message;
+            message.className = "error";
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "Create Course";
+        }
+    });
+</script>
+
+</body>
+</html>
+```

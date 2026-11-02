@@ -24,6 +24,12 @@ public class Student {
 
     private String contact;
 
+    @Column(nullable = false)
+    private String department = "General";
+
+    @Column(nullable = false)
+    private Integer marks = 0;
+
     public Student() {
     }
 
@@ -53,5 +59,21 @@ public class Student {
 
     public void setContact(String contact) {
         this.contact = contact;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public Integer getMarks() {
+        return marks;
+    }
+
+    public void setMarks(Integer marks) {
+        this.marks = marks;
     }
 }

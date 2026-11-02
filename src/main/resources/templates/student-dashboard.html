@@ -8,10 +8,6 @@
 
     <title>Student Dashboard | OCMS</title>
 
-    <!-- Spring Security CSRF token -->
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-
     <style>
         * {
             box-sizing: border-box;
@@ -176,15 +172,11 @@
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
+            text-decoration: none;
         }
 
-        .enroll-btn:hover:not(:disabled) {
+        .enroll-btn:hover {
             background: #1d4ed8;
-        }
-
-        .enroll-btn:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
         }
 
         .message {
@@ -288,12 +280,6 @@
 </footer>
 
 <script>
-    const csrfToken =
-        document.querySelector('meta[name="_csrf"]').content;
-
-    const csrfHeader =
-        document.querySelector('meta[name="_csrf_header"]').content;
-
     const courseGrid = document.getElementById("courseGrid");
     const courseCount = document.getElementById("courseCount");
     const notice = document.getElementById("notice");
@@ -310,75 +296,9 @@
         courseGrid.replaceChildren(box);
     }
 
-    async function readError(response) {
-        try {
-            const body = await response.json();
-            return body.detail || body.message || body.title ||
-                "Request failed with status " + response.status;
-        } catch {
-            return "Request failed with status " + response.status;
-        }
-    }
-
-    async function enrollInCourse(course, button) {
-        if (course.id == null) {
-            showNotice("This course has no valid ID.", "error");
-            return;
-        }
-
-        button.disabled = true;
-        button.textContent = "Enrolling...";
-
-        try {
-            const response = await fetch(
-                "/student/enroll/" + encodeURIComponent(course.id),
-                {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/json",
-                        [csrfHeader]: csrfToken
-                    }
-                }
-            );
-
-            if (response.status === 201) {
-                button.textContent = "Enrolled Successfully";
-                showNotice(
-                    "Successfully enrolled in " +
-                    (course.title || "this course") + ".",
-                    "success"
-                );
-                return;
-            }
-
-            const errorMessage = await readError(response);
-
-            if (response.status === 409) {
-                button.textContent = "Already Enrolled";
-                showNotice(
-                    "You are already enrolled in this course.",
-                    "error"
-                );
-                return;
-            }
-
-            button.disabled = false;
-            button.textContent = "Enroll Now";
-            showNotice(errorMessage, "error");
-
-        } catch (error) {
-            button.disabled = false;
-            button.textContent = "Enroll Now";
-
-            showNotice(
-                "Could not contact the server. Please try again.",
-                "error"
-            );
-
-            console.error("Enrollment error:", error);
-        }
-    }
-
+    /*
+     * Load available courses from Spring Boot.
+     */
     async function loadCourses() {
         try {
             const response = await fetch("/api/courses", {
@@ -441,14 +361,29 @@
                     "Instructor: " +
                     (course.instructor || "Not specified");
 
-                const button = document.createElement("button");
-                button.type = "button";
+                /*
+                 * FIX:
+                 * Navigate to the enrollment form.
+                 * Do not submit enrollment from the dashboard.
+                 */
+                const button = document.createElement("a");
                 button.className = "enroll-btn";
                 button.textContent = "Enroll Now";
 
-                button.addEventListener("click", () => {
-                    enrollInCourse(course, button);
-                });
+                if (course.id != null) {
+                    button.href =
+                        "/student/enrollment-form/" +
+                        encodeURIComponent(course.id);
+                } else {
+                    button.href = "#";
+                    button.addEventListener("click", event => {
+                        event.preventDefault();
+                        showNotice(
+                            "This course has no valid ID.",
+                            "error"
+                        );
+                    });
+                }
 
                 content.append(
                     category,
@@ -464,9 +399,11 @@
 
         } catch (error) {
             courseCount.textContent = "Unable to load courses";
+
             showMessage(
                 "Could not load courses. Check that the backend is running."
             );
+
             console.error("Course loading error:", error);
         }
     }

@@ -1,3 +1,4 @@
+
 package com.example.onilecms.service;
 
 import com.example.onilecms.entity.Course;
@@ -7,6 +8,7 @@ import com.example.onilecms.entity.Student;
 import com.example.onilecms.repository.CourseRepository;
 import com.example.onilecms.repository.EnrollmentRepository;
 import com.example.onilecms.repository.StudentRepository;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,32 +27,40 @@ public class EnrollmentService {
             EnrollmentRepository enrollmentRepository,
             StudentRepository studentRepository,
             CourseRepository courseRepository) {
+
         this.enrollmentRepository = enrollmentRepository;
         this.studentRepository = studentRepository;
         this.courseRepository = courseRepository;
     }
 
+    // Check duplicate enrollment before starting a new enrollment transaction.
+    @Transactional(readOnly = true)
+    public boolean isAlreadyEnrolled(Long studentId, Long courseId) {
+
+        return enrollmentRepository
+                .existsByStudent_IdAndCourse_Id(studentId, courseId);
+    }
+
+    // Enroll a student in a course.
     @Transactional
     public Enrollment enroll(Long studentId, Long courseId) {
 
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Student not found: " + studentId
-                ));
+                        "Student not found: " + studentId));
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Course not found: " + courseId
-                ));
+                        "Course not found: " + courseId));
 
         if (enrollmentRepository
                 .existsByStudent_IdAndCourse_Id(studentId, courseId)) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Student is already enrolled in this course"
-            );
+                    "Student is already enrolled in this course.");
         }
 
         Enrollment enrollment = new Enrollment(student, course);
@@ -58,46 +68,49 @@ public class EnrollmentService {
         return enrollmentRepository.save(enrollment);
     }
 
+    // Retrieve all enrollments.
     @Transactional(readOnly = true)
     public List<Enrollment> getAllEnrollments() {
         return enrollmentRepository.findAll();
     }
 
+    // Retrieve an enrollment by ID.
     @Transactional(readOnly = true)
     public Enrollment getEnrollmentById(Long id) {
+
         return enrollmentRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Enrollment not found: " + id
-                ));
+                        "Enrollment not found: " + id));
     }
 
+    // Retrieve enrollments belonging to a student.
     @Transactional(readOnly = true)
     public List<Enrollment> getByStudent(Long studentId) {
 
         if (!studentRepository.existsById(studentId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Student not found: " + studentId
-            );
+                    "Student not found: " + studentId);
         }
 
         return enrollmentRepository.findByStudent_Id(studentId);
     }
 
+    // Retrieve enrollments for a course.
     @Transactional(readOnly = true)
     public List<Enrollment> getByCourse(Long courseId) {
 
         if (!courseRepository.existsById(courseId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Course not found: " + courseId
-            );
+                    "Course not found: " + courseId);
         }
 
         return enrollmentRepository.findByCourse_Id(courseId);
     }
 
+    // Update enrollment status.
     @Transactional
     public Enrollment updateStatus(
             Long id,
@@ -106,8 +119,7 @@ public class EnrollmentService {
         if (status == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Status is required"
-            );
+                    "Status is required.");
         }
 
         Enrollment enrollment = getEnrollmentById(id);
@@ -116,6 +128,7 @@ public class EnrollmentService {
         return enrollmentRepository.save(enrollment);
     }
 
+    // Delete an enrollment.
     @Transactional
     public void deleteEnrollment(Long id) {
 

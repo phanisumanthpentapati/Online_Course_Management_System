@@ -45,6 +45,11 @@ public class SecurityConfig {
         http
                 .authenticationProvider(authenticationProvider())
 
+                // Local API testing: exempt API routes from CSRF checks.
+                .csrf(csrf ->
+                        csrf.ignoringRequestMatchers("/api/**")
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
                         // Public pages and static resources
@@ -58,11 +63,11 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
 
-                        // Keep existing APIs available for development/testing.
-                        // Secure individual API operations before production.
+                        // API routes permitted for development/testing.
+                        // Add proper authentication before production.
                         .requestMatchers("/api/**").permitAll()
 
-                        // Role-protected dashboards and student operations
+                        // Role-protected dashboards and pages
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/instructor/**").hasRole("INSTRUCTOR")
                         .requestMatchers("/student/**").hasRole("STUDENT")
@@ -89,7 +94,6 @@ public class SecurityConfig {
                         .permitAll()
                 );
 
-        // CSRF protection remains enabled.
         return http.build();
     }
 }

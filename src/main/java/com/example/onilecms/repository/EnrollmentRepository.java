@@ -8,10 +8,13 @@ import java.util.List;
 public interface EnrollmentRepository
         extends JpaRepository<Enrollment, Long> {
 
+    // Get all enrollments for a particular student
     List<Enrollment> findByStudent_Id(Long studentId);
 
+    // Get all enrollments for a particular course
     List<Enrollment> findByCourse_Id(Long courseId);
 
+    // Check whether the student is already enrolled in the course
     boolean existsByStudent_IdAndCourse_Id(
             Long studentId,
             Long courseId
